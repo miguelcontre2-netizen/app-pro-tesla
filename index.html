@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SISTEMA EXPERTO ACC v5.3</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #05070a; --panel: rgba(17, 24, 39, 0.9); --accent: #10b981; --gold: #f59e0b; --text: #f0f6fc; }
+        * { box-sizing: border-box; }
+        body { font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; padding: 15px; }
+        .container { width: 100%; max-width: 500px; }
+        .glass-card { background: var(--panel); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        #bloqueo { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .lock-box { text-align: center; border: 1px solid var(--gold); padding: 30px; border-radius: 25px; background: #0b0f1a; width: 100%; max-width: 350px; }
+        h2 { text-transform: uppercase; text-align: center; font-size: 1.2rem; margin-bottom: 20px; color: var(--gold); }
+        select, input, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #30363d; background: #0d1117; color: white; font-size: 1rem; font-family: inherit; }
+        button { background: var(--gold); border: none; cursor: pointer; font-weight: 700; color: #000; }
+        .historial-box { background: #000; padding: 10px; border-radius: 10px; border: 1px solid var(--accent); font-size: 0.8rem; height: 70px; overflow-y: auto; color: var(--accent); margin-top: 10px; }
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .num-card { background: rgba(255,255,255,0.05); border-left: 3px solid var(--gold); padding: 15px; border-radius: 10px; text-align: center; }
+        .num-val { font-size: 1.8rem; font-weight: 800; color: var(--gold); display: block; }
+        .loader { display: none; text-align: center; color: #00d4ff; font-size: 0.8rem; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div id="bloqueo">
+    <div class="lock-box">
+        <h2>ACCESO ALGORITMO</h2>
+        <input type="text" id="pass" placeholder="TOKEN: TESLA369" style="text-align: center;">
+        <button onclick="verificar()">INGRESAR</button>
+        <p id="error" style="color: #ef4444; font-size: 0.8rem; display: none;">TOKEN INCORRECTO</p>
+    </div>
+</div>
+
+<div id="app-content" class="container" style="display:none;">
+    <div class="glass-card">
+        <h2>PROYECCIÓN PREMIUM</h2>
+        <label style="font-size: 0.7rem; opacity: 0.6;">LOTERÍA:</label>
+        <select id="lotSelect"></select>
+        
+        <label style="font-size: 0.7rem; opacity: 0.6;">HISTORIAL (4 CIFRAS):</label>
+        <div style="display: flex; gap: 5px;">
+            <input type="number" id="histIn" placeholder="Ej: 8049" inputmode="numeric">
+            <button style="width: 50px;" onclick="addHistorial()">+</button>
+            <button style="width: 50px; background: #374151; color: #fff;" onclick="limpiar()">X</button>
+        </div>
+        <div class="historial-box" id="histLog">Esperando datos...</div>
+
+        <button onclick="procesar()" style="margin-top: 20px;">CALCULAR CONVERGENCIAS</button>
+        <div id="loader" class="loader">PROCESANDO...</div>
+    </div>
+
+    <div id="resFinal" style="display:none;">
+        <div class="results-grid" id="grid"></div>
+    </div>
+</div>
+
+<script>
+    const PATRONES = {
+        "Super Astro Sol": 11296541, "Super Astro Luna": 11296542, "Dorado Mañana": 4691461, "Dorado Tarde": 4691462, "Dorado Noche": 4691463,
+        "Chontico Día": 3865291, "Chontico Noche": 3865292, "Sinuano Día": 1953111, "Sinuano Noche": 1953112,
+        "Cafeterito Tarde": 315526, "Cafeterito Noche": 315527, "Paisita Día": 521478, "Paisita Noche": 521479,
+        "Bogotá": 987456, "Medellín": 874512, "Valle": 763214, "Quindío": 445522, "Risaralda": 112233
+    };
+
+    let historial = [];
+    const sel = document.getElementById('lotSelect');
+    Object.keys(PATRONES).sort().forEach(l => {
+        let opt = document.createElement('option');
+        opt.value = l; opt.innerText = l;
+        sel.appendChild(opt);
+    });
+
+    function verificar() {
+        // CORRECCIÓN: Ahora limpia espacios y no importa si es mayúscula o minúscula
+        const entrada = document.getElementById('pass').value.trim().toUpperCase();
+        if(entrada === "TESLA369") {
+            document.getElementById('bloqueo').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+        } else {
+            document.getElementById('error').style.display = 'block';
+        }
+    }
+
+    function addHistorial() {
+        const val = document.getElementById('histIn').value.trim();
+        if(val.length === 4) {
+            historial.unshift(val);
+            document.getElementById('histLog').innerText = "DATA: " + historial.join(" | ");
+            document.getElementById('histIn').value = "";
+        }
+    }
+
+    function limpiar() {
+        historial = [];
+        document.getElementById('histLog').innerText = "Esperando datos...";
+        document.getElementById('resFinal').style.display = 'none';
+    }
+
+    function procesar() {
+        if(historial.length < 2) { alert("Ingresa al menos 2 resultados pasados"); return; }
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('resFinal').style.display = 'none';
+        
+        setTimeout(() => {
+            const lot = document.getElementById('lotSelect').value;
+            const patron = PATRONES[lot];
+            const grid = document.getElementById('grid');
+            grid.innerHTML = "";
+            
+            for(let i=0; i<6; i++) {
+                let n = Math.floor(1000 + Math.random() * 9000).toString();
+                // Pequeña lógica basada en el primer historial y el patrón
+                let d1 = parseInt(historial[0][0]);
+                let finalNum = n.split('').map((d, idx) => (parseInt(d) + d1 + (patron % 10)) % 10).join('');
+                
+                grid.innerHTML += `<div class="num-card"><span style="font-size:0.6rem;opacity:0.6;">VECTOR ${i+1}</span><span class="num-val">${finalNum}</span></div>`;
+            }
+            
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('resFinal').style.display = 'block';
+        }, 1200);
+    }
+</script>
+</body>
+</html>
